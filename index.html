@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta nama="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-secondary">
+      <div class="container-md">
+        <a class="navbar-brand" href="#">Navbar</a>
+      </div>
+    </nav>
+
+    <div class="container mb-2 mt-3">
+      <div class="row justify-content-center">
+        <div class="col-6">
+          <div class="card">
+            <div class="card-body">
+              <div class="form">
+                <h5 class="text-center">Bakso-Website</h5>
+
+                <div class="input-group mb-3 mt-3">
+                  <span class="input-group-text">Nama : </span>
+                  <input
+                    id="nama"
+                    nama="nama"
+                    type="text"
+                    aria-label="First nama"
+                    class="form-control"
+                  />
+                </div>
+
+                <div class="input-group mb-3 mt-3">
+                  <span class="input-group-text">Harga :</span>
+                  <input
+                    id="harga"
+                    nama="harga"
+                    type="text"
+                    class="form-control"
+                    aria-label="Amount (to the nearest dollar)"
+                  />
+                  <span class="input-group-text">.00</span>
+                </div>
+                <div class="input-group mb-3 mt-3">
+                  <span class="input-group-text">QTY : </span>
+                  <input
+                    id="qty"
+                    nama="qty"
+                    type="text"
+                    aria-label="First nama"
+                    class="form-control"
+                  />
+                </div>
+                <button
+                  id="button"
+                  onclick="saveData()"
+                  type="button"
+                  class="btn btn-secondary"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-9">
+          <div class="card">
+            <div class="card-body">
+              <div class="form">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">No</th>
+                      <th scope="col">Nama</th>
+                      <th scope="col">Harga</th>
+                      <th scope="col">QTY</th>
+                      <th scope="col">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="result"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+      const saveData = async () => {
+        let nama = document.getElementById("nama").value;
+        let harga = document.getElementById("harga").value;
+        let qty = document.getElementById("qty").value;
+        await axios
+          .post(`https://database.politekniklp3i-tasikmalaya.ac.id/api/bakso`, {
+            nama: nama,
+            harga: harga,
+            qty: qty,
+          })
+          .then((response) => {
+            getData();
+            document.getElementById("nama").value = "";
+            document.getElementById("harga").value = "";
+            document.getElementById("qty").value = "";
+            alert("Sukses Disimpan");
+            console.log(response);
+          })
+          .catch((error) => {
+            console.log(error.message);
+          });
+      };
+
+      const getData = async () => {
+        axios
+          .get(`https://database.politekniklp3i-tasikmalaya.ac.id/api/bakso`)
+          .then((response) => {
+            let bucket = ``;
+            let bakso = response.data.baksos;
+            if (bakso.length > 0) {
+              for (let i = 0; i < bakso.length; i++) {
+                bucket += `
+                    <tr>
+                    <td>${i + 1}</td>
+                    <td>${bakso[i].nama}</td>
+                    <td>${bakso[i].harga}</td>
+                    <td>${bakso[i].qty}</td>
+                    <td>
+                      <button onclick="editData('${bakso[i].id}','${
+                  bakso[i].nama
+                }','${bakso[i].harga}','${bakso[i].qty}')">Edit</button>
+                      <button onclick="deleteData(${
+                        bakso[i].id
+                      })">Delete</button>
+                    </td>
+                    </tr>
+                    `;
+              }
+            } else {
+              bucket += `
+                  <tr>
+                    <td colspan="5" style="text-align: center">Data Tidak Ditemukan</td>
+                  </tr>
+                  `;
+            }
+            document.getElementById("result").innerHTML = bucket;
+          })
+          .catch((error) => {
+            let bucket = `
+                  <tr>
+                  <td colspan="5" style="text-align: center">${error.message}</td>
+                  </tr>
+                  `;
+            document.getElementById("result").innerHTML = bucket;
+          });
+      };
+
+      const deleteData = async (id) => {
+        await axios
+          .delete(
+            `https://database.politekniklp3i-tasikmalaya.ac.id/api/bakso/${id}`
+          )
+          .then((response) => {
+            getData();
+            alert("Succes delete");
+            console.log(response);
+          })
+          .catch((error) => {
+            console.log(error.message);
+          });
+      };
+      const editData = (id, nama, harga, qty) => {
+        document.getElementById("nama").value = nama;
+        document.getElementById("harga").value = harga;
+        document.getElementById("qty").value = qty;
+        document.getElementById("button").innerText = "Ubah";
+        document
+          .getElementById("button")
+          .setAttribute("onclick", `updateData(${id})`);
+      };
+      const updateData = async (id) => {
+        let nama = document.getElementById("nama").value;
+        let harga = document.getElementById("harga").value;
+        let qty = document.getElementById("qty").value;
+        await axios
+          .patch(
+            `https://database.politekniklp3i-tasikmalaya.ac.id/api/bakso/${id}`,
+            {
+              nama: nama,
+              harga: harga,
+              qty: qty,
+            }
+          )
+          .then((response) => {
+            getData();
+            document.getElementById("nama").value = "";
+            document.getElementById("harga").value = "";
+            document.getElementById("qty").value = "";
+            alert("Sukses DiEdit");
+            console.log(response);
+          })
+          .catch((error) => {
+            console.log(error.message);
+          });
+      };
+
+      getData();
+    </script>
+  </body>
+</html>
